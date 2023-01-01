@@ -10,29 +10,9 @@ import (
 )
 
 const (
-	BOARD_SIZE = 3
 	BLANK_LINE = "    |   |\n"
 	BREAK_LINE = "----+---+----\n"
 )
-
-func initialModel() model {
-	board := make([][]string, BOARD_SIZE)
-	for i := 0; i < BOARD_SIZE; i++ {
-		board[i] = make([]string, BOARD_SIZE)
-		for j := 0; j < BOARD_SIZE; j++ {
-			// Set an empty character for each cell on the board.
-			board[i][j] = " "
-		}
-	}
-
-	return model{
-		board:          board,
-		selectedRow:    0,
-		selectedColumn: 0,
-		xTurn:          true,
-		winner:         "",
-	}
-}
 
 func (m model) Init() tea.Cmd {
 	return receiveMove
