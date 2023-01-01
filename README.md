@@ -7,7 +7,7 @@ Currently, I am working on making it playable with a friend, over a simple TCP c
 - [ ] initialize connection in main before starting the game
 - [ ] randomly decide between X and O
 - [ ] handle the TCP moveMsg in Update
-- [ ] block playing when it's not your turn
+- [x] block playing when it's not your turn
 - [ ] add sending of the message upon playing a move
 
 ### Advanced features
@@ -18,4 +18,4 @@ Currently, I am working on making it playable with a friend, over a simple TCP c
 
 ### Refactoring
 - [ ] make View use StringBuilder
-- [ ] extract "x" and "o" as constants
+- [x] extract "x" and "o" as constants
