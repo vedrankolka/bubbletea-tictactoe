@@ -9,8 +9,13 @@ Currently, I am working on making it playable with a friend, over a simple TCP c
 - [ ] handle the TCP moveMsg in Update
 - [ ] block playing when it's not your turn
 - [ ] add sending of the message upon playing a move
+
 ### Advanced features
 - [ ] enable standalone mode
 - [ ] add the other players cursor
 - [ ] send cursor moves to the other player
 - [ ] receive cursor moves and move the cursor
+
+### Refactoring
+- [ ] make View use StringBuilder
+- [ ] extract "x" and "o" as constants
