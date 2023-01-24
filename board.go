@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 )
@@ -76,12 +77,12 @@ func (m model) handleEnter() model {
 	}
 
 	// TODO send message to opponent.
-	err := m.sendMove()
+	err := m.sendMove(ENTER)
 	if err != nil {
 		log.Fatalf("could not send move to opponent: %v", err)
 	}
 
-	// Switch players turn.
+	// Switch player's turn.
 	if m.playerTurn == PLAYER_X {
 		m.playerTurn = PLAYER_O
 	} else {
@@ -89,6 +90,16 @@ func (m model) handleEnter() model {
 	}
 
 	return m
+}
+
+func (m model) handleOpponentEnter(key, opponent, selectedRowStr, selectedColStr string) (model, error) {
+	// TODO check if it's the opponent's turn to play.
+	// TODO check if the selected field is empty.
+	// TODO mark the selected field.
+	// TODO check if the opponent is the winner and mark the winner.
+	// Switch player's turn.
+
+	return m, nil
 }
 
 // isWinner checks if the current player is the winner.
@@ -137,7 +148,8 @@ func (m *model) isWinner() bool {
 	return won1 || won2
 }
 
-func (m *model) sendMove() error {
-	// TODO: send the move over the TCP connection.
-	return nil
+func (m *model) sendMove(key string) error {
+	move := fmt.Sprintf("%s,%s,%d,%d", key, m.player, m.selectedRow, m.selectedColumn)
+	_, err := (*m.conn).Write([]byte(move))
+	return err
 }
