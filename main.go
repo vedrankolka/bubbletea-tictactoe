@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -28,6 +30,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var err error
 
 	switch msg := msg.(type) {
 
@@ -56,7 +59,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedColumn += 1
 			}
 		case ENTER:
-			m = m.handleEnter()
+			m, err = m.HandleMyEnter()
+			if err != nil {
+				log.Print(err)
+				return m, tea.Quit
+			}
 			// If there is a winner, end the game.
 			if m.winner != "" {
 				return m, tea.Quit
@@ -65,17 +72,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Return the modified model and receiveMove function.
 		return m, createReceiveMove(*m.conn)
+
+	// Was it a command from the opponent?
 	case moveMessage:
-		commandParts := strings.Split(",", msg.command)
+		commandParts := strings.Split(msg.command, ",")
+
+		// Which key was sent?
 		switch commandParts[0] {
 		case ENTER:
-			// TODO handle enter again but check if it's his turn!
-			// maybe another handle method?
-			// TODO parse to get the opponents cursor position
-			m.handleOpponentEnter(commandParts[0], commandParts[1], commandParts[2], commandParts[3])
+			m, err = m.HandleOpponentEnter(commandParts[0], commandParts[1], commandParts[2], commandParts[3])
+			if err != nil {
+				log.Print(err)
+				tea.Quit()
+			}
+
+			if m.winner != "" {
+				return m, tea.Quit
+			}
 
 		default:
-			log.Fatalf("Unknown key %q", commandParts[0])
+			log.Printf("Ignoring unknown key %q", commandParts[0])
+			return m, createReceiveMove(*m.conn)
 		}
 
 		return m, nil
@@ -115,9 +132,16 @@ func (m model) View() string {
 		}
 	}
 
+	// Add bottom panel.
+	s += fmt.Sprintf("You are playing as %s. It's %s's turn.\n", m.player, m.playerTurn)
+
 	// If there is a winner, add a line of text.
 	if m.winner != "" {
-		s += m.winner + " wins!\n"
+		if m.winner == TIE {
+			s += "It's a tie!\n"
+		} else {
+			s += m.winner + " wins!\n"
+		}
 	}
 
 	return s
@@ -129,6 +153,13 @@ func main() {
 	port := flag.String("port", "8080", "Port on which to listen to.")
 
 	flag.Parse()
+
+	if len(os.Args) < 2 {
+		fmt.Println("The program expects one of the flags to be set:")
+		fmt.Println("\t--wait")
+		fmt.Println("\t--ip --port")
+		return
+	}
 
 	// Set logs to tictactoe.log.
 	f, err := tea.LogToFile("tictactoe.log", "debug")
@@ -162,8 +193,14 @@ func main() {
 			log.Fatalf("Could not read from the connection: %v", err)
 		}
 
-		player := string(buffer[:length])
-		log.Printf("The opponent chose to be %s\n", player)
+		opponent := string(buffer[:length])
+		log.Printf("The opponent chose to be %s\n", opponent)
+
+		if opponent == PLAYER_X {
+			player = PLAYER_O
+		} else {
+			player = PLAYER_X
+		}
 
 	} else {
 		// Dial a connection to the waiting opponent.
@@ -176,7 +213,8 @@ func main() {
 		// Choose between X and O randomly.
 		src := rand.NewSource(time.Now().UnixNano())
 		r := rand.New(src)
-		if r.Int()%2 == 0 {
+
+		if r.Intn(2) == 0 {
 			player = PLAYER_X
 		} else {
 			player = PLAYER_O
@@ -192,7 +230,7 @@ func main() {
 	}
 
 	// Start the program.
-	p := tea.NewProgram(NewModel(&conn, "X"))
+	p := tea.NewProgram(NewModel(&conn, player))
 	if _, err := p.Run(); err != nil {
 		log.Printf("Alas, there's been an error: %v\n", err)
 	}

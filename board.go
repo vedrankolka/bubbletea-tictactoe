@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 )
 
 const (
 	EMPTY      = " "
 	BOARD_SIZE = 3
-	PLAYER_X   = "x"
-	PLAYER_O   = "o"
+	PLAYER_X   = "X"
+	PLAYER_O   = "O"
+	TIE        = "tie"
 )
 
 type model struct {
@@ -57,29 +59,60 @@ func NewModel(conn *net.Conn, player string) model {
 	}
 }
 
-func (m model) handleEnter() model {
-	// If it is not this player's turn, no action.
-	if m.playerTurn == m.player {
+func (m model) HandleMyEnter() (model, error) {
+	m = m.handlePlayerEnter(m.player, m.selectedRow, m.selectedColumn)
+
+	// Send move message to opponent.
+	err := m.sendMove(ENTER)
+	return m, err
+}
+
+func (m model) HandleOpponentEnter(key, opponent, selectedRowStr, selectedColStr string) (model, error) {
+	selectedRow, err := strconv.Atoi(selectedRowStr)
+	if err != nil {
+		return m, err
+	}
+
+	selectedCol, err := strconv.Atoi(selectedColStr)
+	if err != nil {
+		return m, err
+	}
+
+	return m.handlePlayerEnter(opponent, selectedRow, selectedCol), nil
+}
+
+// handlePlayerEnter handles an Enter from the given player.
+func (m model) handlePlayerEnter(player string, row int, col int) model {
+	log.Printf("Handling move of player %s on turn %s at cursor [%d, %d]\n",
+		player, m.playerTurn, row, col,
+	)
+
+	// If it's not the player's turn, no action.
+	if player != m.playerTurn {
+		log.Printf("Ignoring %s's move as it's %s's turn.\n", player, m.playerTurn)
 		return m
 	}
 
 	// If the cell is not empty, no action.
-	if m.board[m.selectedRow][m.selectedColumn] != EMPTY {
+	if m.board[row][col] != EMPTY {
+		log.Printf("Ignoring move as cell [%d, %d] is not empty.\n", row, col)
 		return m
 	}
 
 	// Mark cell.
-	m.board[m.selectedRow][m.selectedColumn] = m.player
+	m.board[row][col] = player
+	log.Printf("%s marked cell [%d, %d]\n", player, row, col)
 
 	// Check if the player won.
-	if m.isWinner() {
-		m.winner = m.playerTurn
+	if m.isWinner(player) {
+		m.winner = player
+		log.Printf("Marked that %s won.\n", player)
 	}
 
-	// TODO send message to opponent.
-	err := m.sendMove(ENTER)
-	if err != nil {
-		log.Fatalf("could not send move to opponent: %v", err)
+	// Check if it's a tie.
+	if m.isTie() {
+		m.winner = TIE
+		log.Printf("Marked the game as a tie.\n")
 	}
 
 	// Switch player's turn.
@@ -92,23 +125,13 @@ func (m model) handleEnter() model {
 	return m
 }
 
-func (m model) handleOpponentEnter(key, opponent, selectedRowStr, selectedColStr string) (model, error) {
-	// TODO check if it's the opponent's turn to play.
-	// TODO check if the selected field is empty.
-	// TODO mark the selected field.
-	// TODO check if the opponent is the winner and mark the winner.
-	// Switch player's turn.
-
-	return m, nil
-}
-
-// isWinner checks if the current player is the winner.
-func (m *model) isWinner() bool {
+// isWinner checks if the given player is the winner.
+func (m *model) isWinner(player string) bool {
 	// Check every row.
 	for i := 0; i < BOARD_SIZE; i++ {
 		won := true
 		for j := 0; j < BOARD_SIZE; j++ {
-			won = won && m.board[i][j] == m.playerTurn
+			won = won && m.board[i][j] == player
 			if !won {
 				break
 			}
@@ -123,7 +146,7 @@ func (m *model) isWinner() bool {
 	for j := 0; j < BOARD_SIZE; j++ {
 		won := true
 		for i := 0; i < BOARD_SIZE; i++ {
-			won = won && m.board[i][j] == m.playerTurn
+			won = won && m.board[i][j] == player
 			if !won {
 				break
 			}
@@ -138,14 +161,32 @@ func (m *model) isWinner() bool {
 	won1 := true
 	won2 := true
 	for i := 0; i < BOARD_SIZE; i++ {
-		won1 = won1 && m.board[i][i] == m.playerTurn
-		won2 = won2 && m.board[i][BOARD_SIZE-i-1] == m.playerTurn
+		won1 = won1 && m.board[i][i] == player
+		won2 = won2 && m.board[i][BOARD_SIZE-i-1] == player
 		if !won1 && !won2 {
 			break
 		}
 	}
 
 	return won1 || won2
+}
+
+// isTie checks if the board results in a tie.
+// TODO actually check that, now it checks if the board is filled
+// and there is no winner.
+func (m *model) isTie() bool {
+	boardFull := true
+	for i := 0; i < BOARD_SIZE; i++ {
+		for j := 0; j < BOARD_SIZE; j++ {
+			boardFull = boardFull && (m.board[i][j] != EMPTY)
+			if !boardFull {
+				break
+			}
+		}
+	}
+
+	// Claim it's a tie if the board is full and there is no winner yet.
+	return boardFull && m.winner == ""
 }
 
 func (m *model) sendMove(key string) error {
