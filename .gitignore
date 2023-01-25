@@ -1,0 +1,8 @@
+# Ignore files with no extension (executables).
+*
+!/**/
+!*.go
+!*.mod
+!*.sum
+!*.md
+!.gitignore
