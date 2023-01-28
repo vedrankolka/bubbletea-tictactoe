@@ -6,3 +6,5 @@
 !*.sum
 !*.md
 !.gitignore
+!*.tape
+!*.gif
