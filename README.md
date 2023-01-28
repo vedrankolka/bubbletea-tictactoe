@@ -3,9 +3,9 @@ Command line demo app built using [Bubbletea](https://github.com/charmbracelet/b
 
 Currently, it is playable with a friend, over a simple TCP connection.
 
-[](https://github.com/vedrankolka/bubbletea-tictactoe/blob/develop/gifs/demo-wait.gif)
+![](https://github.com/vedrankolka/bubbletea-tictactoe/blob/develop/gifs/demo-wait.gif)
 
-[](https://github.com/vedrankolka/bubbletea-tictactoe/blob/develop/gifs/demo-dail.gif)
+![](https://github.com/vedrankolka/bubbletea-tictactoe/blob/develop/gifs/demo-dail.gif)
 
 ## Getting started
 TODO: write this part.
