@@ -50,10 +50,10 @@ Output gifs/demo-wait.mp4
 Require echo
 
 Set FontSize 16
-Set Width 400
-Set Height 400
+Set Width 420
+Set Height 370
 Set LoopOffset 0%
-Set Padding 5
+Set Padding 20
 
 # opponent sleeping
 Type "./tictactoe --wait --port 8080" Sleep 500ms  Enter Sleep 3s

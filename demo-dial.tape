@@ -50,14 +50,14 @@ Output gifs/demo-dial.mp4
 Require echo
 
 Set FontSize 16
-Set Width 400
-Set Height 400
+Set Width 420
+Set Height 370
 Set LoopOffset 0%
-Set Padding 15
+Set Padding 20
 
 Sleep 1500ms
 
-Type "./tictactoe --ip opponents-ip-address --port 8080" Sleep 500ms  Enter Sleep 3s
+Type "./tictactoe --ip opponent --port 8080" Sleep 500ms  Enter Sleep 3s
 
 Down Sleep 500ms Down Sleep 500ms Enter Sleep 3s
 
