@@ -49,10 +49,11 @@ Output gifs/demo-dial.mp4
 
 Require echo
 
-Set FontSize 26
-Set Width 600
+Set FontSize 16
+Set Width 400
 Set Height 400
 Set LoopOffset 0%
+Set Padding 15
 
 Sleep 1500ms
 
