@@ -49,9 +49,9 @@ Output gifs/demo-wait.mp4
 
 Require echo
 
-Set FontSize 26
-Set Width 1000
-Set Height 800
+Set FontSize 16
+Set Width 600
+Set Height 400
 Set LoopOffset 0%
 
 # opponent sleeping
